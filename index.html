@@ -291,9 +291,9 @@
   var qp = getParams();
 
   var CONFIG = {
-    station:   qp.station || "",                 // Stationsname, z.B. "Sargans"
+    station:   qp.station || "Sargans",                 // Stationsname, z.B. "Sargans"
     id:        qp.id || "",                       // exakte Haltestellen-ID (bevorzugt, falls bekannt)
-    limit:     parseInt(qp.limit, 10) || 8,        // Anzahl Verbindungen
+    limit:     parseInt(qp.limit, 10) || 5,        // Anzahl Verbindungen
     title:     qp.title || "",                     // Titel ueberschreiben statt API-Stationsname
     refresh:   Math.max(parseInt(qp.refresh, 10) || 30, 10), // Sekunden zwischen Abfragen, min. 10
     clock:     qp.clock !== "0",                   // Uhr anzeigen, default an
