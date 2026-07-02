@@ -302,7 +302,7 @@
   var qp = getParams();
 
   var CONFIG = {
-    station:   qp.station || "",                 // Stationsname, z.B. "Sargans"
+    station:   qp.station || "Sargans",                 // Stationsname, z.B. "Sargans"
     id:        qp.id || "",                       // exakte Haltestellen-ID (bevorzugt, falls bekannt)
     limit:     parseInt(qp.limit, 10) || 8,        // Anzahl Verbindungen
     title:     qp.title || "",                     // Titel ueberschreiben statt API-Stationsname
