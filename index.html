@@ -92,10 +92,11 @@
     flex: 0 0 auto;
   }
 
-  .col-linie   { width: 16%; -webkit-box-flex: 0; -webkit-flex: 0 0 16%; flex: 0 0 16%; }
-  .col-abfahrt { width: 14%; -webkit-box-flex: 0; -webkit-flex: 0 0 14%; flex: 0 0 14%; }
+  .col-linie   { width: 15%; -webkit-box-flex: 0; -webkit-flex: 0 0 15%; flex: 0 0 15%; }
+  .col-abfahrt { width: 12%; -webkit-box-flex: 0; -webkit-flex: 0 0 12%; flex: 0 0 12%; }
+  .col-gleis   { width: 10%; -webkit-box-flex: 0; -webkit-flex: 0 0 10%; flex: 0 0 10%; }
   .col-ziel    { -webkit-box-flex: 1; -webkit-flex: 1 1 auto; flex: 1 1 auto; }
-  .col-hinweis { width: 16%; text-align: right; -webkit-box-flex: 0; -webkit-flex: 0 0 16%; flex: 0 0 16%; }
+  .col-hinweis { width: 14%; text-align: right; -webkit-box-flex: 0; -webkit-flex: 0 0 14%; flex: 0 0 14%; }
 
   /* ---------- Rows ---------- */
   #rows {
@@ -130,16 +131,17 @@
   .row-b { background: #0a5872; }
 
   .cell-linie {
-    width: 16%;
+    width: 15%;
     -webkit-box-flex: 0;
-    -webkit-flex: 0 0 16%;
-    flex: 0 0 16%;
+    -webkit-flex: 0 0 15%;
+    flex: 0 0 15%;
     display: -webkit-box;
     display: -webkit-flex;
     display: flex;
     -webkit-box-align: center;
     -webkit-align-items: center;
     align-items: center;
+    min-width: 0;
   }
 
   .icon {
@@ -162,15 +164,30 @@
     padding: calc(0.35vh * var(--scale, 1)) calc(0.9vh * var(--scale, 1));
     border-radius: calc(0.4vh * var(--scale, 1));
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    vertical-align: middle;
   }
 
   .cell-abfahrt {
-    width: 14%;
+    width: 12%;
     -webkit-box-flex: 0;
-    -webkit-flex: 0 0 14%;
-    flex: 0 0 14%;
+    -webkit-flex: 0 0 12%;
+    flex: 0 0 12%;
     font-size: calc(2.4vh * var(--scale, 1));
     font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .cell-gleis {
+    width: 10%;
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 10%;
+    flex: 0 0 10%;
+    font-size: calc(2.0vh * var(--scale, 1));
+    font-weight: 600;
+    opacity: 0.85;
     white-space: nowrap;
   }
 
@@ -184,13 +201,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     padding-right: calc(1vh * var(--scale, 1));
-  }
-
-  .cell-ziel .platform {
-    font-weight: 400;
-    font-size: calc(1.7vh * var(--scale, 1));
-    opacity: 0.75;
-    margin-left: calc(0.8vh * var(--scale, 1));
   }
 
   .cell-hinweis {
@@ -258,6 +268,7 @@
     <div id="col-headers">
       <div class="col-linie">Linie</div>
       <div class="col-abfahrt">Abfahrt</div>
+      <div class="col-gleis">Gleis</div>
       <div class="col-ziel">Richtung / Ziel</div>
       <div class="col-hinweis">Hinweis</div>
     </div>
@@ -291,14 +302,14 @@
   var qp = getParams();
 
   var CONFIG = {
-    station:   qp.station || "Sargans",                 // Stationsname, z.B. "Sargans"
+    station:   qp.station || "",                 // Stationsname, z.B. "Sargans"
     id:        qp.id || "",                       // exakte Haltestellen-ID (bevorzugt, falls bekannt)
-    limit:     parseInt(qp.limit, 10) || 5,        // Anzahl Verbindungen
+    limit:     parseInt(qp.limit, 10) || 8,        // Anzahl Verbindungen
     title:     qp.title || "",                     // Titel ueberschreiben statt API-Stationsname
     refresh:   Math.max(parseInt(qp.refresh, 10) || 30, 10), // Sekunden zwischen Abfragen, min. 10
     clock:     qp.clock !== "0",                   // Uhr anzeigen, default an
-    scale:     parseFloat(qp.fontscale) || 2.0,       // Skalierungsfaktor Schrift/Elemente
-    platform:  qp.platform !== "0",                 // Gleis/Perron anzeigen
+    scale:     parseFloat(qp.fontscale) || 1,       // Skalierungsfaktor Schrift/Elemente
+    platform:  qp.platform !== "0",                  // Gleis/Perron anzeigen (Spalte), default an
     types:     qp.types || ""                       // z.B. "train,bus,tram,ship,cableway"
   };
 
@@ -452,8 +463,17 @@
       cellLinie.appendChild(makeIcon(e.category));
       var badge = document.createElement("span");
       badge.className = "badge";
-      var lineLabel = (e.category || "") + (e.number || "");
-      if (!lineLabel && e.name) { lineLabel = String(e.name).replace(/\s+/g, ""); }
+      // Kurze Liniennummern (z.B. "IR13", "S12") komplett anzeigen; lange Zugnummern
+      // (z.B. internationale ICE/EC-Nummern wie "ICE 279") wuerden die Badge sprengen,
+      // daher dort nur die Kategorie zeigen, wie auf realen Anzeigetafeln ueblich.
+      var num = e.number || "";
+      var lineLabel;
+      if (num && num.length <= 3) {
+        lineLabel = (e.category || "") + num;
+      } else {
+        lineLabel = e.category || num || "";
+      }
+      if (!lineLabel && e.name) { lineLabel = String(e.name).replace(/\s+/g, "").substring(0, 6); }
       badge.textContent = lineLabel || "?";
       cellLinie.appendChild(badge);
       row.appendChild(cellLinie);
@@ -464,16 +484,20 @@
       cellAbfahrt.textContent = cancelled ? "--:--" : formatTime(planned);
       row.appendChild(cellAbfahrt);
 
+      // Gleis
+      var cellGleis = document.createElement("div");
+      cellGleis.className = "cell-gleis";
+      if (CONFIG.platform && stop.platform) {
+        cellGleis.textContent = stop.platform;
+      } else {
+        cellGleis.textContent = "";
+      }
+      row.appendChild(cellGleis);
+
       // Ziel
       var cellZiel = document.createElement("div");
       cellZiel.className = "cell-ziel";
       cellZiel.appendChild(document.createTextNode(e.to || ""));
-      if (CONFIG.platform && stop.platform) {
-        var plat = document.createElement("span");
-        plat.className = "platform";
-        plat.textContent = "Gleis " + stop.platform;
-        cellZiel.appendChild(plat);
-      }
       if (cancelled) { cellZiel.className += " cancelled"; }
       row.appendChild(cellZiel);
 
