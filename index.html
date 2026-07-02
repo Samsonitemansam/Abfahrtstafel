@@ -297,7 +297,7 @@
     title:     qp.title || "",                     // Titel ueberschreiben statt API-Stationsname
     refresh:   Math.max(parseInt(qp.refresh, 10) || 30, 10), // Sekunden zwischen Abfragen, min. 10
     clock:     qp.clock !== "0",                   // Uhr anzeigen, default an
-    scale:     parseFloat(qp.fontscale) || 1,       // Skalierungsfaktor Schrift/Elemente
+    scale:     parseFloat(qp.fontscale) || 2.0,       // Skalierungsfaktor Schrift/Elemente
     platform:  qp.platform === "1",                 // Gleis/Perron anzeigen
     types:     qp.types || ""                       // z.B. "train,bus,tram,ship,cableway"
   };
